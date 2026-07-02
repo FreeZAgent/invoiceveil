@@ -1,0 +1,15 @@
+node_modules/
+.brand-preview/
+.stellar/
+
+contract/target/
+circuits/build/
+
+keys/*.ptau
+keys/*.zkey
+keys/sample_*.json
+keys/configure_vk*.json
+keys/settle_*_payload.json
+keys/settle_proof_*.json
+
+*.log
