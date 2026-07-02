@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>InvoiceVeil - Settlement Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#08080f;
+  --bg-2:#101119;
+  --shell:#0d0d14;
+  --rail:#131420;
+  --top:#101119;
+  --panel:#171925;
+  --panel-2:#1e2030;
+  --line:#ffffff12;
+  --line-strong:#ffffff1e;
+  --text:#f2f1f5;
+  --text-soft:#c4bfd4;
+  --text-dim:#8f89a3;
+  --primary:#a978eb;
+  --primary-soft:#c4a6f1;
+  --primary-deep:#633797;
+  --green:#57c693;
+  --green-bg:#143425;
+  --orange:#f0b56c;
+  --red:#e68795;
+  --red-bg:#351824;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:linear-gradient(180deg,var(--bg),var(--bg-2));color:var(--text)}
+.shell{
+  height:calc(100vh - 24px);margin:12px;border-radius:22px;overflow:hidden;
+  display:grid;grid-template-columns:72px 1fr;grid-template-rows:62px 1fr;
+  background:var(--shell);border:1px solid var(--line);
+  box-shadow:0 24px 60px rgba(0,0,0,.35);
+}
+.topbar{
+  grid-column:1/-1;display:flex;align-items:center;gap:14px;
+  padding:0 18px;background:var(--top);border-bottom:1px solid var(--line);
+}
+.logo{
+  width:40px;height:40px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--primary),#7a53c4);
+  font-weight:800;color:#fff;box-shadow:0 0 28px #a978eb33;
+}
+.crumb{font-size:13px;color:var(--text-dim);flex:1}
+.crumb strong{color:var(--text);font-weight:700}
+.top-tabs{display:flex;gap:8px}
+.tab{
+  padding:9px 12px;border-radius:12px;border:1px solid transparent;
+  font-size:12px;color:var(--text-soft);background:transparent;
+}
+.tab.active{background:#ffffff08;border-color:var(--line-strong);color:var(--text)}
+.avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--panel-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--text);
+}
+.sidebar{
+  background:var(--rail);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 0;
+}
+.nav-icon{
+  width:44px;height:44px;border-radius:14px;border:1px solid transparent;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-dim);font-size:12px;font-weight:700;
+}
+.nav-icon.active{background:#ffffff08;border-color:var(--line-strong);color:var(--primary-soft)}
+.content{
+  padding:14px;display:grid;gap:14px;
+  grid-template-columns:1.2fr .8fr;
+  grid-template-rows:auto auto 1fr;
+}
+.hero{
+  grid-column:1;display:grid;grid-template-columns:1.05fr .95fr;gap:14px;
+}
+.panel{
+  background:linear-gradient(180deg,#151623,#11121b);
+  border:1px solid var(--line);border-radius:24px;padding:20px;
+}
+.kicker{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px}
+.balance-title{font-size:34px;line-height:1.02;letter-spacing:-.05em;margin-bottom:10px}
+.balance-copy{font-size:14px;line-height:1.7;color:var(--text-soft);max-width:52ch;margin-bottom:18px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn-primary,.btn-secondary{
+  padding:12px 14px;border-radius:14px;font-size:13px;font-weight:700
+}
+.btn-primary{background:var(--primary);color:#10091a;border:none}
+.btn-secondary{background:transparent;color:var(--text);border:1px solid var(--line-strong)}
+.mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.mini-card{
+  padding:14px;border-radius:16px;background:#0f1018;border:1px solid var(--line)
+}
+.mini-card span{display:block;font-size:11px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em}
+.mini-card strong{display:block;font-size:18px;letter-spacing:-.03em}
+.proof-status{
+  display:grid;gap:10px
+}
+.status-row{
+  padding:14px;border-radius:16px;background:#0f1018;border:1px solid var(--line)
+}
+.status-row strong{display:block;font-size:14px;margin-bottom:6px}
+.status-row span{font-size:12px;line-height:1.6;color:var(--text-soft)}
+.status-badge{
+  display:inline-flex;margin-top:10px;padding:5px 9px;border-radius:999px;
+  font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+}
+.ok{background:var(--green-bg);color:#88e4b8}
+.warn{background:#332614;color:#ffd296}
+.danger{background:var(--red-bg);color:#f5a4b0}
+.feed{
+  grid-column:1;grid-row:2 / span 2;
+}
+.feed-head,.side-head{
+  display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px
+}
+.feed-head h2,.side-head h2{font-size:16px}
+.feed-head span,.side-head span{font-size:12px;color:var(--text-dim)}
+.feed-list{display:grid;gap:10px}
+.feed-item{
+  display:grid;grid-template-columns:1.2fr 1fr .7fr .9fr;gap:12px;align-items:center;
+  padding:14px 0;border-bottom:1px solid var(--line)
+}
+.feed-item:last-child{border-bottom:none}
+.feed-item strong{font-size:13px}
+.feed-item p,.feed-item span{font-size:12px;color:var(--text-soft);line-height:1.5}
+.zk-chip{
+  display:inline-flex;justify-self:start;padding:6px 10px;border-radius:999px;
+  background:#21152f;color:var(--primary-soft);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase
+}
+.side{
+  display:grid;gap:14px
+}
+.metric{
+  padding:16px;border-radius:20px;background:linear-gradient(180deg,#181927,#12131b);
+  border:1px solid var(--line)
+}
+.metric-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.metric-value{font-size:28px;letter-spacing:-.04em;font-weight:800;margin-bottom:6px}
+.metric-copy{font-size:12px;line-height:1.6;color:var(--text-soft)}
+.audit-box{
+  padding:16px;border-radius:18px;background:#0f1018;border:1px solid var(--line)
+}
+.audit-box + .audit-box{margin-top:10px}
+.audit-box strong{display:block;font-size:13px;margin-bottom:6px}
+.audit-box span{font-size:12px;line-height:1.6;color:var(--text-soft)}
+.timeline{display:grid;gap:10px}
+.timeline-item{
+  padding:14px;border-radius:16px;background:#0f1018;border:1px solid var(--line)
+}
+.timeline-item strong{display:block;font-size:13px;margin-bottom:4px}
+.timeline-item span{font-size:12px;color:var(--text-soft);line-height:1.6}
+@media (max-width:1120px){
+  .content,.hero{grid-template-columns:1fr}
+  .feed-item{grid-template-columns:1fr 1fr}
+}
+@media (max-width:760px){
+  .shell{grid-template-columns:1fr;grid-template-rows:62px auto 1fr;height:auto}
+  .sidebar{flex-direction:row;justify-content:center;padding:10px;border-right:none;border-bottom:1px solid var(--line)}
+  .content{grid-template-columns:1fr}
+  .hero{grid-template-columns:1fr}
+  .mini-grid,.feed-item{grid-template-columns:1fr}
+  .top-tabs{display:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="logo">IV</div>
+    <div class="crumb">InvoiceVeil / <strong>Settlement Dashboard</strong></div>
+    <div class="top-tabs">
+      <div class="tab active">Invoices</div>
+      <div class="tab">Proof Flow</div>
+      <div class="tab">Auditor View</div>
+    </div>
+    <div class="avatar">ZK</div>
+  </div>
+
+  <div class="sidebar">
+    <div class="nav-icon active">INV</div>
+    <div class="nav-icon">ZK</div>
+    <div class="nav-icon">AUD</div>
+    <div class="nav-icon">LOG</div>
+    <div class="nav-icon">CFG</div>
+  </div>
+
+  <div class="content">
+    <div class="hero">
+      <div class="panel">
+        <div class="kicker">Private invoice settlement</div>
+        <div class="balance-title">The chain sees settlement.<br/>It does not see the amount.</div>
+        <div class="balance-copy">This dashboard is centered around the actual product flow from the build plan: register invoice bounds, generate a Groth16 proof in-browser, verify on Soroban, and publish only the commitment plus settlement state.</div>
+        <div class="actions">
+          <button class="btn-primary">Register invoice</button>
+          <button class="btn-secondary">Generate proof</button>
+        </div>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <span>Open invoices</span>
+            <strong>12</strong>
+          </div>
+          <div class="mini-card">
+            <span>Settled privately</span>
+            <strong>08</strong>
+          </div>
+          <div class="mini-card">
+            <span>Rejections tested</span>
+            <strong>02</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel proof-status">
+        <div class="status-row">
+          <strong>Proof generation</strong>
+          <span>Browser-side proving keeps `amount` and `salt` off any backend infrastructure in the MVP.</span>
+          <div class="status-badge ok">Private witness</div>
+        </div>
+        <div class="status-row">
+          <strong>Verifier gate</strong>
+          <span>The settlement function checks `verify_groth16(...)` before the invoice transitions to `Settled`.</span>
+          <div class="status-badge ok">Load-bearing ZK</div>
+        </div>
+        <div class="status-row">
+          <strong>Audit disclosure</strong>
+          <span>Auditors can later confirm amount plus salt against the on-chain commitment through a separate verification path.</span>
+          <div class="status-badge warn">Selective disclosure</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel feed">
+      <div class="feed-head">
+        <h2>Public invoice feed</h2>
+        <span>No raw amounts shown</span>
+      </div>
+      <div class="feed-list">
+        <div class="feed-item">
+          <div>
+            <strong>Invoice #018</strong>
+            <p>Payee: GAB...VEIL</p>
+          </div>
+          <div>
+            <strong>$10,000 - $50,000</strong>
+            <p>Public contract bounds</p>
+          </div>
+          <div class="zk-chip">ZK Protected</div>
+          <div>
+            <strong>Settled</strong>
+            <p>Commitment: 0x7f3c...98a1</p>
+          </div>
+        </div>
+        <div class="feed-item">
+          <div>
+            <strong>Invoice #017</strong>
+            <p>Payee: GAA...SAFE</p>
+          </div>
+          <div>
+            <strong>$5,000 - $12,000</strong>
+            <p>Public contract bounds</p>
+          </div>
+          <div class="zk-chip">ZK Protected</div>
+          <div>
+            <strong>Pending</strong>
+            <p>Awaiting proof submission</p>
+          </div>
+        </div>
+        <div class="feed-item">
+          <div>
+            <strong>Invoice #016</strong>
+            <p>Payee: GZX...AUDT</p>
+          </div>
+          <div>
+            <strong>$2,000 - $8,000</strong>
+            <p>Public contract bounds</p>
+          </div>
+          <div class="zk-chip">ZK Protected</div>
+          <div>
+            <strong>Rejected</strong>
+            <p>Invalid proof test case</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="metric">
+        <div class="metric-label">Proof system</div>
+        <div class="metric-value">Groth16</div>
+        <div class="metric-copy">Chosen for compact proof size and lower on-chain verification cost.</div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label">Commitment model</div>
+        <div class="metric-value">Poseidon(amount, salt)</div>
+        <div class="metric-copy">Binds settlement to one invoice without leaking the underlying amount.</div>
+      </div>
+
+      <div class="panel">
+        <div class="side-head">
+          <h2>Auditor panel</h2>
+          <span>Stretch feature</span>
+        </div>
+        <div class="audit-box">
+          <strong>Input</strong>
+          <span>Invoice ID, amount, and salt shared over a private channel.</span>
+        </div>
+        <div class="audit-box">
+          <strong>Output</strong>
+          <span>Boolean confirmation that the disclosed amount matches the commitment stored on-chain.</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="side-head">
+          <h2>Demo script cues</h2>
+          <span>2-3 min video</span>
+        </div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <strong>Problem</strong>
+            <span>Public invoice amounts expose pricing and supplier leverage.</span>
+          </div>
+          <div class="timeline-item">
+            <strong>Happy path</strong>
+            <span>Valid proof settles invoice and emits only the commitment hash.</span>
+          </div>
+          <div class="timeline-item">
+            <strong>Rejection path</strong>
+            <span>Invalid proof or mismatched bounds should fail on-chain.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

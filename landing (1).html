@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>InvoiceVeil - Private Invoice Settlement on Stellar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#08080f;
+  --bg-2:#101119;
+  --panel:#171925;
+  --panel-2:#1e2030;
+  --line:#ffffff14;
+  --line-strong:#ffffff22;
+  --text:#f2f1f5;
+  --text-soft:#c3bfd2;
+  --text-dim:#8f89a3;
+  --primary:#a978eb;
+  --primary-soft:#c4a6f1;
+  --primary-deep:#7043aa;
+  --ok:#57c693;
+  --warn:#f3b36e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at top right,#2a184433 0%,transparent 28%),
+    radial-gradient(circle at left center,#22134555 0%,transparent 36%),
+    linear-gradient(180deg,var(--bg) 0%,var(--bg-2) 100%);
+}
+a{text-decoration:none;color:inherit}
+button{font:inherit}
+nav{
+  position:sticky;top:0;z-index:40;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 32px;
+  background:rgba(8,8,15,.82);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{
+  width:38px;height:38px;border-radius:12px;
+  background:linear-gradient(135deg,var(--primary),#7e57cc);
+  box-shadow:0 0 32px #a978eb40;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:18px;color:#fff;
+}
+.brand-copy strong{display:block;font-size:15px;letter-spacing:.04em}
+.brand-copy span{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.12em}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{font-size:13px;color:var(--text-soft)}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{
+  border:none;border-radius:12px;padding:12px 18px;
+  background:var(--primary);color:#0f0918;font-weight:700;cursor:pointer;
+}
+.hero{
+  max-width:1180px;margin:0 auto;padding:84px 32px 60px;
+  display:grid;grid-template-columns:1.1fr .9fr;gap:34px;align-items:center;
+}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:999px;
+  border:1px solid var(--line-strong);
+  background:#ffffff08;
+  color:var(--primary-soft);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:20px;
+}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.hero h1{
+  font-size:58px;line-height:1.02;letter-spacing:-.05em;
+  margin-bottom:18px;max-width:12ch;
+}
+.hero h1 em{
+  font-style:normal;
+  color:var(--primary-soft);
+}
+.hero p{
+  font-size:16px;line-height:1.8;color:var(--text-soft);
+  max-width:58ch;margin-bottom:28px;
+}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:30px}
+.btn-primary,.btn-secondary{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:14px 18px;border-radius:14px;cursor:pointer;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--primary),#8e62d7);
+  color:#0e0917;border:none;font-weight:800;
+  box-shadow:0 12px 30px #a978eb33;
+}
+.btn-secondary{
+  background:transparent;border:1px solid var(--line-strong);
+  color:var(--text);
+}
+.hero-stats{display:flex;gap:18px;flex-wrap:wrap}
+.stat{
+  min-width:148px;padding:16px 18px;border-radius:16px;
+  background:rgba(255,255,255,.04);border:1px solid var(--line);
+}
+.stat strong{display:block;font-size:25px;margin-bottom:4px}
+.stat span{font-size:12px;color:var(--text-dim);line-height:1.5}
+
+.hero-visual{
+  background:linear-gradient(180deg,#141522,#0e0f16);
+  border:1px solid var(--line);
+  border-radius:28px;padding:22px;
+  box-shadow:0 26px 60px rgba(0,0,0,.35);
+}
+.visual-top{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--line);
+}
+.visual-top strong{font-size:14px}
+.visual-top span{font-size:12px;color:var(--text-dim)}
+.proof-card{
+  background:linear-gradient(180deg,#1a1c2a,#131420);
+  border:1px solid var(--line);
+  border-radius:22px;padding:18px;margin-bottom:14px;
+}
+.proof-card h3{font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.proof-value{
+  font-size:28px;font-weight:800;letter-spacing:-.04em;margin-bottom:8px;
+}
+.proof-copy{font-size:13px;line-height:1.7;color:var(--text-soft)}
+.flow{
+  display:grid;gap:10px;
+}
+.flow-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:16px;
+}
+.flow-row strong{font-size:13px}
+.pill{
+  padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;
+  background:#ffffff10;color:var(--text-soft);text-transform:uppercase;letter-spacing:.08em;
+}
+.pill.ok{background:#143425;color:#89e3b7}
+.trust{
+  max-width:1180px;margin:0 auto;padding:0 32px 68px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+}
+.trust-card{
+  padding:18px;border-radius:18px;background:var(--panel);
+  border:1px solid var(--line);
+}
+.trust-card strong{display:block;font-size:14px;margin-bottom:6px}
+.trust-card span{font-size:13px;line-height:1.6;color:var(--text-soft)}
+.section{
+  max-width:1180px;margin:0 auto;padding:0 32px 76px;
+}
+.section-head{max-width:640px;margin-bottom:26px}
+.section-head .label{
+  font-size:11px;font-weight:700;color:var(--primary-soft);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;
+}
+.section-head h2{
+  font-size:38px;line-height:1.1;letter-spacing:-.04em;margin-bottom:10px;
+}
+.section-head p{font-size:15px;line-height:1.8;color:var(--text-soft)}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{
+  background:linear-gradient(180deg,#151625,#11121c);
+  border:1px solid var(--line);
+  border-radius:22px;padding:22px;
+}
+.icon{
+  width:44px;height:44px;border-radius:14px;margin-bottom:18px;
+  display:flex;align-items:center;justify-content:center;
+  background:#ffffff08;border:1px solid var(--line-strong);
+  color:var(--primary-soft);font-weight:800;
+}
+.card h3{font-size:17px;margin-bottom:10px}
+.card p{font-size:14px;line-height:1.7;color:var(--text-soft)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.step{
+  padding:22px;border-radius:22px;border:1px solid var(--line);
+  background:var(--panel);
+}
+.step-index{
+  display:inline-flex;padding:6px 10px;border-radius:999px;
+  background:#ffffff08;border:1px solid var(--line-strong);
+  font-size:11px;font-weight:800;color:var(--primary-soft);letter-spacing:.08em;margin-bottom:14px;
+}
+.step h3{font-size:16px;margin-bottom:8px}
+.step p{font-size:14px;line-height:1.7;color:var(--text-soft)}
+.demo{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+}
+.demo-pane{
+  padding:22px;border-radius:24px;background:var(--panel);border:1px solid var(--line);
+}
+.mini-form{display:grid;gap:10px;margin-top:16px}
+.input{
+  padding:14px 14px;border-radius:14px;border:1px solid var(--line-strong);
+  background:#0d0e16;color:var(--text);font-size:14px;
+}
+.input small{display:block;color:var(--text-dim);font-size:11px}
+.feed-list{display:grid;gap:10px;margin-top:16px}
+.feed-item{
+  padding:14px;border-radius:16px;background:#0f1018;border:1px solid var(--line);
+}
+.feed-top{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}
+.feed-item strong{font-size:14px}
+.feed-item span,.feed-item p{font-size:12px;color:var(--text-soft);line-height:1.6}
+.cta{
+  max-width:1180px;margin:0 auto 86px;padding:0 32px;
+}
+.cta-shell{
+  background:linear-gradient(135deg,#171421,#110f17 55%,#211232 100%);
+  border:1px solid var(--line);
+  border-radius:28px;padding:34px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.cta-shell h3{font-size:34px;line-height:1.05;letter-spacing:-.04em;margin-bottom:10px}
+.cta-shell p{font-size:15px;line-height:1.8;color:var(--text-soft);max-width:54ch}
+footer{
+  padding:26px 32px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;gap:16px;align-items:center;color:var(--text-dim);font-size:12px;
+}
+@media (max-width:980px){
+  .hero,.demo{grid-template-columns:1fr}
+  .grid-3,.steps,.trust{grid-template-columns:1fr 1fr}
+  .hero h1{font-size:46px}
+  .cta-shell{flex-direction:column;align-items:flex-start}
+}
+@media (max-width:720px){
+  nav,.hero,.trust,.section,.cta,footer{padding-left:18px;padding-right:18px}
+  .nav-links{display:none}
+  .grid-3,.steps,.trust{grid-template-columns:1fr}
+  .hero{padding-top:58px}
+  .hero h1{font-size:38px}
+  .section-head h2{font-size:30px}
+  .cta-shell h3{font-size:28px}
+  footer{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+<nav>
+  <div class="brand">
+    <div class="brand-mark">IV</div>
+    <div class="brand-copy">
+      <strong>InvoiceVeil</strong>
+      <span>Confidential B2B Payments</span>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#flow">Flow</a>
+    <a href="#demo">Demo</a>
+    <a href="#architecture">Architecture</a>
+  </div>
+  <button class="nav-cta">Open Dashboard</button>
+</nav>
+
+<section class="hero">
+  <div>
+    <div class="eyebrow"><span class="dot"></span>Stellar Hacks · Real-World ZK</div>
+    <h1>Private invoice settlement on <em>Stellar</em>, with ZK doing the real work.</h1>
+    <p>InvoiceVeil lets businesses settle a USDC invoice on Stellar and prove the payment amount falls inside an agreed contract range, without publishing the exact amount on-chain. The verifier call gates settlement, so removing ZK breaks the product.</p>
+    <div class="hero-actions">
+      <button class="btn-primary">View Invoice Flow</button>
+      <button class="btn-secondary">See ZK Architecture</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <strong>Groth16</strong>
+        <span>Compact proof system chosen for cheap on-chain verification.</span>
+      </div>
+      <div class="stat">
+        <strong>BN254 + Poseidon</strong>
+        <span>Built around Stellar Protocol 25/26 primitives.</span>
+      </div>
+      <div class="stat">
+        <strong>[ZK Protected]</strong>
+        <span>The public invoice feed never reveals the actual amount.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="visual-top">
+      <strong>Demo settlement preview</strong>
+      <span>Private amount, public proof</span>
+    </div>
+    <div class="proof-card">
+      <h3>Invoice #018</h3>
+      <div class="proof-value">$10,000 - $50,000 range</div>
+      <p class="proof-copy">The contract sees `lo_bound`, `hi_bound`, and a commitment hash. The actual payment amount and salt stay client-side while the Groth16 proof authorizes settlement.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-row">
+        <strong>1. Register invoice</strong>
+        <span class="pill">Pending</span>
+      </div>
+      <div class="flow-row">
+        <strong>2. Generate proof in browser</strong>
+        <span class="pill">Private</span>
+      </div>
+      <div class="flow-row">
+        <strong>3. Verify on Soroban</strong>
+        <span class="pill ok">Load-bearing</span>
+      </div>
+      <div class="flow-row">
+        <strong>4. Emit commitment, not amount</strong>
+        <span class="pill">Selective disclosure</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="trust">
+  <div class="trust-card">
+    <strong>Exact amount stays private</strong>
+    <span>The blockchain records settlement and commitment, not the invoice amount.</span>
+  </div>
+  <div class="trust-card">
+    <strong>ZK is load-bearing</strong>
+    <span>The contract rejects settlement when proof verification fails or is removed.</span>
+  </div>
+  <div class="trust-card">
+    <strong>Auditor path supported</strong>
+    <span>Amount and salt can be disclosed privately later for selective verification.</span>
+  </div>
+  <div class="trust-card">
+    <strong>Built for Stellar</strong>
+    <span>Uses Soroban plus Protocol 25/26 host functions for BN254 and Poseidon.</span>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="section-head">
+    <div class="label">What the product actually does</div>
+    <h2>Focused on one high-value privacy problem: public invoice amounts.</h2>
+    <p>The product is intentionally narrow for the hackathon. We are not trying to hide everything. We are proving one important commercial fact: a payment fits its contract bounds without leaking the exact number.</p>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="icon">01</div>
+      <h3>Bounded settlement</h3>
+      <p>Businesses publish a payment range such as $10,000 to $50,000, then settle a specific invoice without exposing the actual amount.</p>
+    </div>
+    <div class="card">
+      <div class="icon">02</div>
+      <h3>Browser-side proving</h3>
+      <p>Witness generation and proof creation happen off-chain so private inputs never need a backend proving service in the MVP.</p>
+    </div>
+    <div class="card">
+      <div class="icon">03</div>
+      <h3>Selective disclosure</h3>
+      <p>Auditors can later verify amount plus salt against the stored commitment without changing what the chain already reveals.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="flow">
+  <div class="section-head">
+    <div class="label">End-to-end flow</div>
+    <h2>Four steps from invoice registration to private settlement.</h2>
+    <p>This mirrors the development plan and keeps the demo easy to explain in two minutes.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-index">Step 01</div>
+      <h3>Register invoice bounds</h3>
+      <p>The payer records payee plus public `lo_bound` and `hi_bound` on Soroban. No amount is posted.</p>
+    </div>
+    <div class="step">
+      <div class="step-index">Step 02</div>
+      <h3>Choose actual payment</h3>
+      <p>The buyer decides the invoice amount privately and generates a random salt for the commitment.</p>
+    </div>
+    <div class="step">
+      <div class="step-index">Step 03</div>
+      <h3>Generate Groth16 proof</h3>
+      <p>The browser proves the amount is within bounds and tied to the commitment using Poseidon.</p>
+    </div>
+    <div class="step">
+      <div class="step-index">Step 04</div>
+      <h3>Verify before settlement</h3>
+      <p>The contract checks the proof and only then marks the invoice settled, emitting the commitment hash.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="demo">
+  <div class="section-head">
+    <div class="label">UI direction</div>
+    <h2>Landing and dashboard are both telling the same product story now.</h2>
+    <p>The left side shows the create-and-settle interaction. The right side previews the public settlement feed where the amount stays hidden.</p>
+  </div>
+  <div class="demo">
+    <div class="demo-pane">
+      <div class="label" style="margin-bottom:12px">Buyer settlement flow</div>
+      <h3 style="font-size:24px;letter-spacing:-.03em;margin-bottom:8px">Generate the proof locally</h3>
+      <p style="font-size:14px;line-height:1.7;color:var(--text-soft)">The actual amount only appears inside the client flow. The UI emphasizes proving status and chain verification rather than raw payment disclosure.</p>
+      <div class="mini-form">
+        <div class="input">Invoice ID: <strong>#018</strong></div>
+        <div class="input">Range: <strong>$10,000 - $50,000</strong></div>
+        <div class="input">Actual amount: <strong>[Private Input]</strong><small>Visible only in browser witness generation.</small></div>
+      </div>
+    </div>
+    <div class="demo-pane">
+      <div class="label" style="margin-bottom:12px">Public invoice feed</div>
+      <h3 style="font-size:24px;letter-spacing:-.03em;margin-bottom:8px">Show what settled, hide what matters.</h3>
+      <div class="feed-list">
+        <div class="feed-item">
+          <div class="feed-top"><strong>Invoice #018</strong><span>Settled</span></div>
+          <p>Range: $10,000 - $50,000</p>
+          <p>Amount: [ZK Protected]</p>
+        </div>
+        <div class="feed-item">
+          <div class="feed-top"><strong>Invoice #017</strong><span>Pending</span></div>
+          <p>Range: $5,000 - $12,000</p>
+          <p>Commitment posted after proof verification.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="architecture">
+  <div class="section-head">
+    <div class="label">Architecture summary</div>
+    <h2>One repo, four build tracks: circuit, prover, contract, frontend.</h2>
+    <p>The implementation plan below matches the repository scaffolding added in this phase.</p>
+  </div>
+  <div class="grid-3">
+    <div class="card">
+      <h3>Circom circuit</h3>
+      <p>Proves `lo_bound ≤ amount ≤ hi_bound` and ties the proof to `Poseidon(amount, salt)` so the settlement is bound to one invoice commitment.</p>
+    </div>
+    <div class="card">
+      <h3>Soroban verifier</h3>
+      <p>Stores invoice metadata, checks bounds against registration, verifies the proof, and emits an event with commitment only.</p>
+    </div>
+    <div class="card">
+      <h3>Frontend demo</h3>
+      <p>Explains the happy path, the rejection path, and the public-versus-private separation judges need to understand fast.</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="cta-shell">
+    <div>
+      <h3>Private payment proof, public settlement confidence.</h3>
+      <p>InvoiceVeil is being built as a narrow, demo-ready MVP for Stellar Hacks: register invoice bounds, generate a proof locally, verify on Soroban, and show a settlement feed that never leaks the exact amount.</p>
+    </div>
+    <button class="btn-primary">Continue to Dashboard</button>
+  </div>
+</section>
+
+<footer>
+  <div>InvoiceVeil · Quantum Veil brand direction</div>
+  <div>Stellar · Soroban · Circom · Groth16 · Poseidon</div>
+</footer>
+</body>
+</html>
