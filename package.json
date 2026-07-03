@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "test:e2e": ".\\node_modules\\.bin\\tsx.cmd test\\e2e.test.ts"
+  },
   "dependencies": {
     "@stellar/stellar-sdk": "^16.0.1",
     "@types/node": "^26.1.0",
@@ -6,6 +9,7 @@
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
     "snarkjs": "^0.7.6",
+    "tsx": "^4.20.3",
     "typescript": "^6.0.3"
   }
 }

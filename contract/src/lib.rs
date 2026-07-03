@@ -98,6 +98,24 @@ impl InvoiceVeilContract {
         false
     }
 
+    pub fn get_invoice(env: Env, id: u64) -> Invoice {
+        load_invoice(&env, id)
+    }
+
+    pub fn cancel_invoice(env: Env, payer: Address, id: u64) {
+        payer.require_auth();
+
+        let mut invoice = load_invoice(&env, id);
+        assert!(invoice.payer == payer, "payer mismatch");
+        assert!(matches!(invoice.status, InvoiceStatus::Pending), "invoice not pending");
+
+        invoice.status = InvoiceStatus::Cancelled;
+        save_invoice(&env, &invoice);
+
+        env.events()
+            .publish((Symbol::new(&env, "InvoiceCancelled"),), (id,));
+    }
+
     fn next_id(env: &Env) -> u64 {
         let current: u64 = env.storage().instance().get(&DataKey::NextId).unwrap_or(0);
         env.storage().instance().set(&DataKey::NextId, &(current + 1));
@@ -116,5 +134,18 @@ impl InvoiceVeilContract {
             .instance()
             .get(&DataKey::VerificationKey)
             .expect("verification key not configured")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::invoice::empty_commitment;
+    use soroban_sdk::Env;
+
+    #[test]
+    fn empty_commitment_is_zeroed_bytes() {
+        let env = Env::default();
+        let empty = empty_commitment(&env);
+        assert_eq!(empty.to_array(), [0u8; 32]);
     }
 }

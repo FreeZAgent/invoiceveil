@@ -7,9 +7,7 @@ type SnarkProof = {
 };
 
 function formatG2(point: string[][]): [string, string, string, string] {
-  // Soroban's BN254 byte encoding expects each Fp2 limb pair reversed relative
-  // to the raw SnarkJS JSON. The working order on testnet is:
-  // x[1], x[0], y[1], y[0]
+  // Soroban encodes each Fp2 coordinate as c1 || c0; SnarkJS returns c0, c1.
   return [point[0][1], point[0][0], point[1][1], point[1][0]];
 }
 

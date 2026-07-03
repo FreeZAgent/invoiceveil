@@ -17,8 +17,7 @@ function g1ToHex(point) {
 }
 
 function g2ToHex(point) {
-  // Working Soroban BN254 encoding for SnarkJS Groth16 artifacts:
-  // x[1] || x[0] || y[1] || y[0]
+  // Soroban BN254 Fp2 encoding: x.c1 || x.c0 || y.c1 || y.c0.
   return (
     decToHex32(point[0][1]) +
     decToHex32(point[0][0]) +

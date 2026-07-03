@@ -23,3 +23,25 @@ export interface PublicSignals {
 export interface VerifierInputs {
   inputs: string[];
 }
+
+export type InvoiceStatus = "Pending" | "Settled" | "Cancelled";
+
+export interface InvoiceRecord {
+  id: bigint;
+  payer: string;
+  payee: string;
+  loBound: bigint;
+  hiBound: bigint;
+  commitment: string;
+  status: InvoiceStatus;
+  txHash?: string;
+  createdAt: string;
+}
+
+export interface TxLifecycleEvent {
+  type: "ProofSubmitting" | "TxBroadcast" | "TxConfirmed" | "TxFailed";
+  message: string;
+  hash?: string;
+}
+
+export type InvoiceVeilMode = "demo" | "live";

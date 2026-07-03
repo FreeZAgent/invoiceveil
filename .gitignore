@@ -1,9 +1,14 @@
 node_modules/
+frontend/node_modules/
 .brand-preview/
 .stellar/
 
 contract/target/
+.cargo-target/
 circuits/build/
+frontend/dist/
+frontend/build/
+frontend/node_modules/.vite-dist/
 
 keys/*.ptau
 keys/*.zkey
@@ -11,5 +16,7 @@ keys/sample_*.json
 keys/configure_vk*.json
 keys/settle_*_payload.json
 keys/settle_proof_*.json
+keys/fresh_*.json
+test/fixtures/valid_proof.json
 
 *.log

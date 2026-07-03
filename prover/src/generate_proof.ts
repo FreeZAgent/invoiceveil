@@ -21,27 +21,63 @@ export interface InvoiceProof {
   salt: bigint;
 }
 
+async function resolveProverArtifacts(): Promise<{ wasmPath: string; zkeyPath: string }> {
+  const isBrowserRuntime =
+    typeof window !== "undefined" || typeof process === "undefined" || typeof process.cwd !== "function";
+
+  if (isBrowserRuntime) {
+    return {
+      wasmPath: "/wasm/invoice_range.wasm",
+      zkeyPath: "/wasm/invoice_range_final.zkey",
+    };
+  }
+
+  const path = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+
+  return {
+    wasmPath: path.resolve(rootDir, "circuits", "build", "invoice_range_js", "invoice_range.wasm"),
+    zkeyPath: path.resolve(rootDir, "keys", "invoice_range_final.zkey"),
+  };
+}
+
 function randomSalt(): bigint {
-  const bytes = crypto.getRandomValues(new Uint8Array(31));
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(31));
   return BigInt(`0x${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`);
 }
 
 export async function generateInvoiceProof(input: InvoiceInput): Promise<InvoiceProof> {
+  if (input.loBound > input.hiBound) {
+    throw new Error("Lower bound cannot be greater than upper bound.");
+  }
+
+  if (input.amount < input.loBound || input.amount > input.hiBound) {
+    throw new Error("Invoice amount is outside the agreed contract bounds.");
+  }
+
   const salt = randomSalt();
   const poseidon = await buildPoseidon();
   const commitment = poseidon.F.toString(poseidon([input.amount, salt]));
 
   const circuitInput = toCircuitInput(input, salt, commitment);
-  const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-    circuitInput,
-    "./wasm/invoice_range.wasm",
-    "./wasm/invoice_range_final.zkey",
-  );
+  const { wasmPath, zkeyPath } = await resolveProverArtifacts();
+  try {
+    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+      circuitInput,
+      wasmPath,
+      zkeyPath,
+    );
 
-  return {
-    proof,
-    publicSignals: normalizePublicSignals(publicSignals),
-    rawPublicSignals: publicSignals,
-    salt,
-  };
+    return {
+      proof,
+      publicSignals: normalizePublicSignals(publicSignals),
+      rawPublicSignals: publicSignals,
+      salt,
+    };
+  } catch (error) {
+    throw new Error(
+      `Proof generation failed: ${error instanceof Error ? error.message : "unknown SnarkJS error"}`,
+    );
+  }
 }

@@ -1,54 +1,118 @@
 # InvoiceVeil
 
-Private Stellar invoice settlement with ZK-verified payment bounds.
+> Private B2B invoicing on Stellar using ZK range proofs
 
 ## What it does
 
-InvoiceVeil lets a business settle a USDC invoice on Stellar and prove the amount is within a privately agreed contract range without revealing the exact amount on-chain.
+InvoiceVeil lets a business settle a USDC invoice on Stellar and prove the payment amount falls within a privately agreed contract range without revealing the exact amount on-chain.
 
-## Why ZK is load-bearing
+## The Problem
 
-The settlement path is gated by proof verification in the Soroban contract:
+Public blockchains are great for settlement, but they are terrible for private business pricing. If a supplier and buyer pay invoices directly on-chain, every competitor can infer negotiated rates, discount structures, and payment timing.
 
-```rust
-assert!(verify_groth16(&env, &proof, &signals), "invalid zk proof");
+## The ZK Solution
+
+InvoiceVeil splits the workflow into two public facts and one private fact:
+
+- Public: the payer, payee, and allowed invoice bounds
+- Public: a Poseidon commitment and a Groth16 proof
+- Private: the exact amount and salt
+
+The contract only accepts settlement when the ZK proof shows the hidden amount is inside the agreed range. That means the amount is never written to Stellar, but the counterparty still gets an on-chain guarantee that the invoice complied with the contract.
+
+## Architecture
+
+```text
+Browser (Private)          Stellar Testnet (Public)
+-----------------          -------------------------
+amount = $250      ->  ZK   InvoiceVeil Contract
+salt = random      ->  ->    |-- commitment: 0xabc...
+commitment = H(a,s)->  ->    |-- lo_bound: $100
+proof = Groth16()  ->  ->    |-- hi_bound: $500
+                           `-- status: SETTLED
+
+On-chain: amount NEVER recorded
 ```
 
-If that line is removed or fails, settlement should not happen.
+## Live Demo
 
-## Current repo shape
+- Landing UI: [landing (1).html](D:\Gihtub Main\inviceveil\landing (1).html)
+- Dashboard UI prototype: [dashboard.html](D:\Gihtub Main\inviceveil\dashboard.html)
+- React app: [frontend](D:\Gihtub Main\inviceveil\frontend)
+- Testnet contract ID: `CALOHKUYNCYIPPICYZMDALGKV2V7QHADOXZGH3MIQQ5CR2WTD45OC5VI`
+- Corrected deployment transaction: `c26e9ed017503abe5c566b83727bbe3790fd66946476f132fcfde7d87c045691`
 
-- `landing (1).html`: Branded landing page aligned to the hackathon story
-- `dashboard.html`: Public settlement feed and private proof-flow dashboard UI
-- `circuits/`: Range proof and commitment circuit scaffolding
-- `contract/`: Soroban contract skeleton for invoice registration, settlement, and disclosure
-- `prover/`: Browser-side proof generation and Stellar submission scaffolding
-- `scripts/`: Circuit, setup, deploy, and demo script placeholders
-- `test/`: Starter test files to flesh out during implementation
+## How to Run Locally
 
-## Honest current status
+```bash
+npm install
+cd prover && npm install
+cd ../frontend && npm install
+cd ../contract && cargo test
+cd ../frontend && npm run build
+cd ../frontend && npm run start
+```
 
-- UI has been converted from generic finance templates into InvoiceVeil-specific screens.
-- Core repository scaffolding now matches the development plan.
-- The Soroban contract now has a real BN254 verifier flow shape and verification-key storage, adapted from Stellar's Groth16 verifier pattern.
-- The verification key still needs to be exported from our actual circuit and loaded through `configure` or `update_verification_key`.
-- The Circuit side is now compiling locally, and development artifacts have been generated in `circuits/build/` and `keys/`.
-- SnarkJS proof formatting is now aligned to the circuit's real public signal order: `[lo_bound, hi_bound, commitment]`.
-- Soroban testnet deployment, configuration, invoice registration, and proof-gated settlement have all been executed successfully.
-- Tests are placeholders and have not been executed yet.
+Copy `.env.example` to `.env` inside `frontend/` before running the app.
 
-## Testnet deployment
+## How to Use
 
-- Corrected contract ID: `CALOHKUYNCYIPPICYZMDALGKV2V7QHADOXZGH3MIQQ5CR2WTD45OC5VI`
-- Initial deployment ID: `CBGNPZCAQFS6XF3MFUTAEL4DGEQ36WQ6DD3RBLJTNDN4CPMO335TCBNA`
-- Corrected deploy tx: `c26e9ed017503abe5c566b83727bbe3790fd66946476f132fcfde7d87c045691`
-- Successful settlement event: invoice `1` settled with commitment `1966d11c59b68a1973a439415afe3a36ed21667745950fc755003a44c56d45e8`
+### Create an Invoice
 
-The repo-local Stellar CLI state is stored under `.stellar/`.
+Connect a Stellar wallet, enter the payee address, and choose the lower and upper settlement bounds. The contract stores only the public range and invoice metadata.
 
-## Next implementation priorities
+### Settle an Invoice (Buyer flow)
 
-1. Build contract tests for valid proof, invalid proof, malformed verification key, and mismatched bounds.
-2. Hook the dashboard flow to the prover and Soroban transaction path.
-3. Replace the temporary `verify_disclosure` stub with a safe Poseidon implementation path on Soroban.
-4. Move deploy/configure/register/settle commands into reproducible scripts.
+Enter the exact invoice amount in the browser. InvoiceVeil computes a Poseidon commitment, generates a Groth16 proof in a Web Worker, and submits the proof-backed settlement transaction to Soroban.
+
+### Auditor Disclosure (view key)
+
+If an auditor or finance team needs confirmation later, the buyer can share the amount and salt. InvoiceVeil recomputes the commitment and checks it against the stored invoice record.
+
+## Technical Deep Dive
+
+### Circuit Design
+
+The Circom circuit enforces three things:
+
+- the private amount is greater than or equal to `lo_bound`
+- the private amount is less than or equal to `hi_bound`
+- the published commitment equals `Poseidon(amount, salt)`
+
+### Groth16 Verification on Stellar
+
+The Soroban contract stores the Groth16 verification key and verifies proofs with Stellar's BN254 host functions. The key serialization path had to be aligned carefully with Soroban's G2 limb ordering for the pairing check to pass on testnet.
+
+### Poseidon Commitment Scheme
+
+Commitments are generated client-side with `circomlibjs` Poseidon over `[amount, salt]`. The commitment is what gets published on-chain instead of the raw amount.
+
+### Client-side Proving
+
+Proof generation is designed to run in the browser, and the frontend uses a Web Worker so proof generation does not freeze the main UI thread.
+
+## Known Limitations (be honest)
+
+- `verify_disclosure` in the Soroban contract is still not wired to a native on-chain Poseidon recomputation path, so the frontend currently falls back to a local proof mirror for disclosure checks.
+- Live mode now supports wallet-signed invoice registration and settlement on Stellar testnet, but the dashboard feed still relies on a local cache of invoice IDs instead of a dedicated indexer.
+- Contract unit tests still need stronger fixture-backed negative coverage around invalid proofs and malformed verification keys.
+- Large proving artifacts such as `.zkey` files and WASM outputs are intentionally not committed.
+- The production build currently succeeds, but the bundle is large because proof generation artifacts and wallet dependencies are included in the frontend output.
+
+## Tech Stack
+
+- Circom 2.x
+- SnarkJS
+- circomlibjs
+- Rust + Soroban SDK
+- Stellar CLI
+- React + Vite + TypeScript
+- Stellar SDK and Stellar Wallets Kit
+
+## Resources
+
+- [Stellar ZK docs](https://developers.stellar.org/docs/build/apps/zk)
+- [Soroban groth16 verifier example](https://github.com/stellar/soroban-examples/tree/main/groth16_verifier)
+- [Stellar Skills](https://skills.stellar.org)
+- [Stellar Wallets Kit](https://stellarwalletskit.dev)
+- [Nethermind stellar private payments reference](https://github.com/NethermindEth/stellar-private-payments)
